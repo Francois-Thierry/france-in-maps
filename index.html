@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en"class="no-js">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title class="EN">France in maps</title>
+  <title class="FR">La France en cartes</title>
+
+  <link rel="stylesheet" href="../assets/main.css">
+
+  <script src="../assets/external/jquery-3.1.0.min.js"></script>
+  <script src="../assets/external/xlsx.full.min.js"></script>
+  <script src="../assets/external/d3.v4.2.4.min.js"></script>
+  <script src="../assets/external/topojson.v2.min.js"></script>
+
+  <!-- Helpful ressources -->
+  <!-- http://madewithenvy.com/ecosystem/articles/2015/local-maps-with-canvas-d3/ -->
+  <!-- http://chimera.labs.oreilly.com/books/1230000000345/ch12.html -->
+  <!-- https://jgaffuri.github.io/france2json/revenues_map.html -->
+
+
+</head>
+<body>
+
+<div class="wrapper">
+  <div class="header"></div>
+  <div class="row">
+  	<div class="column-12">
+  		<h1 class="EN">France in maps</h1>
+  		<h1 class="FR">La France en cartes</h1>
+  		<p class="EN">
+  			This webpage is a tryout.
+
+  			I use shapefiles from <a href="https://www.data.gouv.fr/fr/datasets/fond-de-carte-des-codes-postaux/" target="_blank">data.gouv.fr</a>. I then convert the shapefiles using ogr2ogr from the <a href="http://www.gdal.org/" target="_blank">Geospatial Data Abstraction Library (GDAL)</a>.
+  		</p>
+  		<p class="FR">
+  			Cette page est un test de cartographie des données de l'INSEE. Idéalement elle devrait permettre de produire le même type de carte que celles de l'excellent livre "Le mystère français" de Hervé Le Bras et Emmanuel Todd et ajouter de l'interactivité en choisissant parmi les données et les périodes disponibles.
+  		</p>
+  		<p class="FR">
+  			J'utilise des fichiers formes provenant de <a href="https://www.data.gouv.fr/fr/datasets/decoupage-administratif-communal-francais-issu-d-openstreetmap/" target="_blank">data.gouv.fr</a> (version enrichie et simplifiée à 100m). J'ai ensuite convertit le fichier .shp en GeoJSON en utilisant ogr2ogr de la <a href="http://www.gdal.org/" target="_blank">librairie d'abstraction de données géospatiales (GDAL)</a>. 
+  		</p>
+  		<p class="code">
+  			ogr2ogr -f GeoJSON -t_srs crs:84 geo.json communes-20150101-100m.shp</i>
+  		</p>
+  		<p class="FR">
+  			Puis en TopoJSON pour réduire la taille du fichier (-60%!) et ainsi accélérer le chargement.
+  		</p>
+  		<p class="code">
+  			geo2topo -o topo.json -q 1e6 geo.json
+  		</p>
+  		<p class="FR">
+  			J'ai ensuite encore réduit la taille du fichier (-27%) en retirant les attributs dont je n'avais pas besoin. J'ai ainsi retiré les attributs x_chf_lieu, y_chf_lieu, wikipedia, statut, population, lat_centro et lon_centro à l'aide d'un script Python.
+  		</p>
+  		<p class="FR">
+  			Grâce aux attributs (et à TopoJSON) on affiche différents niveaux de résolutions (communes - cantons - départements - régions) avec les mêmes données en fusionnant les géométries qui ont des attributs en commun.
+  		</p>
+  	</div>
+    <div class="row plot column-12">
+      <div class="column-12" style="display:inline-flex;" class="selector">
+        <h3 id="code_regn" class="active">Régions (2015)</h2>
+        <h3 id="code_reg">Régions</h2>
+        <h3 id="code_dept">Départements</h2>
+        <h3 id="code_cant">Cantons</h2>
+        <h3 id="code_com">Communes</h2>
+      </div>
+      <div id="map"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ----------------------------------------------------------------------- -->
+<!--                                                              Javascript -->
+<!-- ----------------------------------------------------------------------- -->
+
+<script src="../assets/main.js"></script>
+
+<script type="text/javascript">
+
+	var width = 860;
+	var height = 640;
+
+	var selectedCode = "code_regn"
+
+  // // Use either Lambert Conformal Conic or Orthographic for Europe
+  // // (http://www.georeference.org/doc/guide_to_selecting_map_projections.htm)
+  // // see also http://kartoweb.itc.nl/geometrics/map%20projections/mappro.html and http://xkcd.com/977/
+  var projection = d3.geoConicConformal()
+    .scale(4000)
+    .center([3.2, 46.2])
+    .translate([width/2, height/2]);
+
+  var canvas = d3.select('#map').append('canvas')
+    .attr('width', width)
+    .attr('height', height)
+
+  var ctx = canvas.node().getContext("2d");
+  ctx.lineWidth = "0.5";
+  ctx.fillStyle = "white"
+      
+  var path = d3.geoPath()
+    .projection(projection)
+    .context(ctx)
+
+  
+	var geographicCodes = ["code_cant", "code_dept", "code_reg"];
+
+	d3.json("topo.json", function(error, map) {
+	  if (error) throw error;
+
+    // var dataLinks = null
+    // d3.csv("table-appartenance-geo-communes-15.csv", function(error, data) {
+    //   dataLinks = d3.csvParseRows(data)
+    //   console.log(dataLinks)
+    //   drawMap(map, selectedCode);
+    // });
+
+  d3.text("table-appartenance-geo-communes-15.csv", function(data) {
+    dataLinks = d3.csvParse(data);
+    // dataLinks = data.map(function(d) {return [d["insee"], d["nom"], d["arr"], d["cant"], d["dept"], d["regn"]];});
+    drawMap(map, selectedCode);
+  });
+    
+
+    // canvas.call(d3.zoom()
+   //    .scaleExtent([1 / 2, 4])
+   //    .on("zoom", zoomed));
+    
+
+    // d3.selectAll("path")
+    //   .on("click", function(d) { console.log("path click"); });
+
+    // Zoom to Bounding Box
+    // http://bl.ocks.org/mbostock/4699541
+
+    // function zoomed() {
+    //   ctx.save();
+    //   ctx.clearRect(0, 0, width, height);
+    //   ctx.translate(d3.event.transform.x, d3.event.transform.y);
+    //   ctx.scale(d3.event.transform.k, d3.event.transform.k);
+    //   drawMap(map, selectedCode);
+    //   ctx.restore();
+    // }
+
+    $(".row.plot h3").click(function(){
+      $(".row.plot h3").removeClass("active");
+      $(this).addClass("active");
+      selectedCode = $(this).attr("id");
+      drawMap(map)
+    })
+
+  });
+
+  function drawMap(map) {
+    console.time("drawing");
+    
+    // save current context with transform
+    ctx.save();
+    // Use the identity matrix while clearing the canvas
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    // clear the canvas
+    ctx.clearRect(0, 0, width, height);
+    // restore transforms on canvas
+    ctx.restore();
+
+    // select dataset geometries
+    var dataset = map.objects.geo.geometries;
+
+    // ACCESSORY UPDATE PROPERTIES (SEE BOTTOM)
+
+    // // sort the dataset by the geographic code
+    // dataset.sort(function(a, b) {
+    //   a_reg = a.properties.code_reg;
+    //   a_dept = a.properties.code_dept;
+    //   a_cant = a.properties.code_cant;
+    //   b_reg = b.properties.code_reg;
+    //   b_dept = b.properties.code_dept;
+    //   b_cant = b.properties.code_cant;
+    //   return parseInt(b_reg+b_dept+b_cant)-parseInt(a_reg+a_dept+a_cant);
+    // })
+
+    dataset.sort(function(a, b) {return d3.ascending(a.properties[selectedCode], b.properties[selectedCode])})
+
+    // regroup and merge by the geographic code
+
+    // initialize a group code
+    var groupCode = ""
+    // for every object in the map
+    for (var i = 0; i < dataset.length; i++) {
+      if (selectedCode == "code_com") {
+        // draw every object
+        ctx.beginPath();
+        path(topojson.feature(map, dataset[i]));
+        ctx.fillStyle = i % 2 ? "#fff" : "#eee";
+        ctx.fill();
+        ctx.stroke();
+        ctx.closePath();
+      } else {
+        // get the corresponding geographic code
+        var id = dataset[i].properties[selectedCode]
+        // if it doesn't exist
+        if (id != groupCode) {
+          // update the group code
+          groupCode = id;
+          // if a group already exist
+          if (group != undefined) {
+            ctx.restore()
+            ctx.beginPath();
+            // draw the merged group
+            path(topojson.merge(map, group))
+            ctx.fillStyle = id % 2 ? "#fff" : "#eee";
+            ctx.fill();
+            ctx.stroke();
+            ctx.closePath();
+          }
+          // if it doesn't exist create it
+          var group = [dataset[i]];
+        } else {
+          // add it to the group if it is the same code as the
+          // previous one
+          group.push(dataset[i])
+        }
+      }   
+    }
+   console.timeEnd("drawing");
+  }
+
+// // update the properties - It took more than 1 sec on my computer so I
+// // rewrote it in python and I updated the topojson file prior to use. I
+// // leave it there for information
+
+// // sort the dataset by the geographic code
+// dataset.sort(function(a, b) {return d3.ascending(a.properties.insee, b.properties.insee)})
+// var j = 0;
+// var arrondissements = {}
+// // loop through the geometries
+// for (var i = 0; i < dataset.length; i++) {
+//   // get the INSEE id for this geometry
+//   inseeId = dataset[i].properties.insee;
+//   // if the INSEE id does not correspond to that of the row in the communes csv 
+//   if (inseeId != dataLinks[i+j].insee) {
+//     // if communes csv item is Marseille, Lyon or Paris
+//     if (["Marseille", "Lyon", "Paris"].includes(dataLinks[i+j].nom)) {
+//       // store the informations to use with arrondissements
+//       arrondissements[dataLinks[i+j].nom] = dataLinks[i+j];
+//       // increment counter to skip this csv row
+//       j += 1;
+//     // if the communes csv item is somewhere else process differences
+//     } else {
+//       // annotate in red
+//       ctx.fillStyle = 'red';
+//       // if the geometry is an arrondissement
+//       if ((+inseeId > 13200 && +inseeId < 13217) || // Marseille
+//           (+inseeId > 69380 && +inseeId < 69390) || // Lyon
+//           (+inseeId > 75100 && +inseeId < 75121)) { // Paris
+//         // decrement counter to keep current csv row
+//         j -= 1;
+//         // weird missing decrement after Paris arrondissements
+//         if (+inseeId == 75120) {
+//           j -= 1;
+//         }
+//       // if the geometry is not an arrondissement
+//       } else {
+//         // if the INSEE id is not present in geometries
+//         if ([55138, 71578].includes(+dataLinks[i+j].insee)) {
+//           // increment counter to skip this csv row
+//           j += 1;
+//         // if the INSEE id is not present in communes csv
+//         } else if ([71138, 97501, 97502].includes(+inseeId)) {
+//           // decrement counter to keep current csv row
+//           j -= 1;
+//         } else {
+//           // there is a bug
+//           console.log(i, dataset[i].properties)
+//           console.log(dataLinks[i+j])
+//           break;
+//         }
+//       }
+//     }
+//   // if the INSEE ids corresponds everything is fine
+//   } else {
+//     ctx.fillStyle = 'white';
+//   }
+//   // update the geometry properties with csv data
+//   $.extend(true, dataset[i].properties, dataLinks[i+j])
+//   // draw the current geometry with particular color
+//   ctx.beginPath();
+//   path(topojson.feature(map, dataset[i]));
+//   ctx.fill();
+//   ctx.stroke();
+//   ctx.closePath();
+// }
+
+</script>
+
+</body>
+</html>
