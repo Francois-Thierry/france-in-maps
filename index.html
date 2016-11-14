@@ -63,7 +63,9 @@
         <h3 id="code_cant">Cantons</h2>
         <h3 id="code_com">Communes</h2>
       </div>
-      <div id="map"></div>
+      <div>
+        <canvas id="map"></canvas>
+      </div>
     </div>
   </div>
 </div>
@@ -78,20 +80,27 @@
 
 	var width = 860;
 	var height = 640;
+  var viewport = [0, 860, 0, 640];
 
-	var selectedCode = "code_regn"
+  var elements = [];
+  var zoomLevel = 0;
+  var selectedElement = null;
+	var selectedCode = "code_regn";
+
+  var regn = {"32":"Hauts-de-France", "44":"Grand-Est", "28":"Normandie", "53":"Bretagne", "52":"Pays de la Loire", "24":"Centre Val de Loire", "11":"Ile-de-France", "27":"Bourgogne Franche-Comté", "75":"Nouvelle Aquitaine", "84":"Auvergne Rhônes-Alpes", "76":"Occitanie", "93":"Provence-Alpes-Côte d'Azur", "94":"Corse"}
 
   // // Use either Lambert Conformal Conic or Orthographic for Europe
   // // (http://www.georeference.org/doc/guide_to_selecting_map_projections.htm)
   // // see also http://kartoweb.itc.nl/geometrics/map%20projections/mappro.html and http://xkcd.com/977/
   var projection = d3.geoConicConformal()
-    .scale(4000)
-    .center([3.2, 46.2])
+    .scale(3600)
+    .center([3.2, 46.4])
     .translate([width/2, height/2]);
 
-  var canvas = d3.select('#map').append('canvas')
+  var canvas = d3.select('#map')
     .attr('width', width)
     .attr('height', height)
+    .attr("id", "mapCanvas")
 
   var ctx = canvas.node().getContext("2d");
   ctx.lineWidth = "0.5";
@@ -101,105 +110,123 @@
     .projection(projection)
     .context(ctx)
 
-	var geographicCodes = ["code_com", "code_cant", "code_dept", "code_reg", "code_regn"];
+  // var zoom = d3.behavior.zoom()
+  //   .translate([0, 0])
+  //   .scale(1)
+  //   .scaleExtent([1, 8])
+  //   .on("zoom", zoomed);
 
-	d3.json("topo.json", function(error, map) {
-	  if (error) throw error;
+  var geographicCodes = ["code_com", "code_cant", "code_dept", "code_reg", "code_regn"];
 
-    d3.text("table-appartenance-geo-communes-15.csv", function(data) {
-      dataLinks = d3.csvParse(data);
-      drawMap(map, selectedCode);
-    });
-    
-    canvas.call(d3.zoom()
-      .scaleExtent([1 / 2, 4])
-      .on("zoom", zoomed));
+  d3.json("topo.json", function(error, map) {
+    if (error) throw error;
 
-    // Zoom to Bounding Box
-    // http://bl.ocks.org/mbostock/4699541
+    // // (ACCESSORY) UPDATE PROPERTIES (SEE BOTTOM)
+    // d3.text("table-appartenance-geo-communes-15.csv", function(data) {
+    //   dataLinks = d3.csvParse(data);
+    //   elements = extractElements(map, selectedCode);
+    //   drawMap(elements);
+    // });
 
-    function zoomed() {
-      // ctx.save();
-      // Use the identity matrix while clearing the canvas
-      // ctx.setTransform(1, 0, 0, 1, 0, 0);
-      // ctx.clearRect(0, 0, width, height);
-      ctx.translate(d3.event.transform.x, d3.event.transform.y);
-      ctx.scale(d3.event.transform.k, d3.event.transform.k);
-      drawMap(map, selectedCode);
-      // ctx.restore();
-    }
+    elements = extractElements(map, selectedCode);
+    drawMap(elements);
 
     $(".row.plot h3").click(function(){
       $(".row.plot h3").removeClass("active");
       $(this).addClass("active");
       selectedCode = $(this).attr("id");
-      drawMap(map)
+      elements = extractElements(map, selectedCode);
+      drawMap(elements)
     })
+
+    canvas.on("click", clicked);
+    // canvas.on("click", makeDoubleClick(reset, clicked));
+
+    function reset() {
+      console.log("RESET")
+    }
+
+    function clicked() {
+      if (zoomLevel == 0) {      
+        var mousePos = d3.mouse(this);
+        elements.forEach(function(element) {
+          ctx.beginPath();
+          path(element);
+          ctx.closePath();
+          if (ctx.isPointInPath(mousePos[0], mousePos[1]) == true) {
+            var bounds = path.bounds(element);
+            var dx = bounds[1][0] - bounds[0][0];
+            var dy = bounds[1][1] - bounds[0][1];
+            var x = (bounds[0][0] + bounds[1][0]) / 2;
+            var y = (bounds[0][1] + bounds[1][1]) / 2;
+            var scale = Math.max(1, Math.min(8, 0.9 / Math.max(dx / width, dy / height)));
+            var translate = [width / 2 - scale * x, height / 2 - scale * y];
+            ctx.save();
+            ctx.translate(translate[0], translate[1]);
+            ctx.scale(scale, scale);
+            ctx.lineWidth = 0.5*1/scale;
+            selectedElement = element;
+            drawMap(elements);
+            zoomLevel += 1;
+            console.log(regn[element.properties.id]);
+            console.log(JSON.stringify(bounds))
+            viewport = [-translate[0]/scale, width/scale-translate[0]/scale, -translate[1]/scale, height/scale-translate[1]/scale]
+            console.log(viewport)
+          }
+        })
+      } else {
+        ctx.restore();
+        zoomLevel = 0;
+        viewport = [0, 860, 0, 640];
+        drawMap(elements);
+      }
+    }
+    
+    // var zoom = d3.zoom()
+    //   .scaleExtent([2/3, 2])
+    //   .on("zoom", zoomed);
+
+    // canvas.call(zoom);
+
+    // function zoomed() {
+    //   ctx.lineWidth = 1.5 / d3.event.scale;
+    //   ctx.translate(d3.event.transform.x, d3.event.transform.y);
+    //   ctx.scale(d3.event.transform.k, d3.event.transform.k);
+    //   drawMap(elements);
+    // }
 
   });
 
-  function drawMap(map) {
-    console.time("drawing");
-    
-    // save current context with transform
-    ctx.save();
-    // Use the identity matrix while clearing the canvas
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    // clear the canvas
-    ctx.clearRect(0, 0, width, height);
-    // restore transforms on canvas
-    ctx.restore();
-
+  function extractElements(map) {
+    console.time("extracting");
+    // prepare elements
+    var elements = [];
     // select dataset geometries
     var dataset = map.objects.geo.geometries;
-
-    // ACCESSORY UPDATE PROPERTIES (SEE BOTTOM)
-
-    // // sort the dataset by the geographic code
-    // dataset.sort(function(a, b) {
-    //   a_reg = a.properties.code_reg;
-    //   a_dept = a.properties.code_dept;
-    //   a_cant = a.properties.code_cant;
-    //   b_reg = b.properties.code_reg;
-    //   b_dept = b.properties.code_dept;
-    //   b_cant = b.properties.code_cant;
-    //   return parseInt(b_reg+b_dept+b_cant)-parseInt(a_reg+a_dept+a_cant);
-    // })
-
+    // sort the dataset by the geographic code
     dataset.sort(function(a, b) {return d3.ascending(a.properties[selectedCode], b.properties[selectedCode])})
-
-    // regroup and merge by the geographic code
-
     // initialize a group code
     var groupCode = ""
     // for every object in the map
     for (var i = 0; i < dataset.length; i++) {
       if (selectedCode == "code_com") {
-        // draw every object
-        ctx.beginPath();
-        path(topojson.feature(map, dataset[i]));
-        ctx.fillStyle = i % 2 ? "#fff" : "#eee";
-        ctx.fill();
-        ctx.stroke();
-        ctx.closePath();
+        // use every object
+        elements.push(topojson.feature(map, dataset[i]));
       } else {
         // get the corresponding geographic code
-        var id = dataset[i].properties[selectedCode]
+        var id = dataset[i].properties[selectedCode];
         // if it doesn't exist
         if (id != groupCode) {
-          // update the group code
-          groupCode = id;
           // if a group already exist
           if (group != undefined) {
-            ctx.restore()
-            ctx.beginPath();
-            // draw the merged group
-            path(topojson.merge(map, group))
-            ctx.fillStyle = id % 2 ? "#fff" : "#eee";
-            ctx.fill();
-            ctx.stroke();
-            ctx.closePath();
+            // merge the paths
+            mergedPath = topojson.merge(map, group)
+            mergedPath.properties = {"id":groupCode}
+            // use the merged group
+            elements.push(mergedPath)
           }
+          // update the group code
+          groupCode = id;
           // if it doesn't exist create it
           var group = [dataset[i]];
         } else {
@@ -209,6 +236,39 @@
         }
       }   
     }
+    console.timeEnd("extracting");
+    return elements;
+  }
+
+  function drawMap(elements) {
+    console.time("drawing");
+    // save current context with transform
+    ctx.save();
+    // Use the identity matrix while clearing the canvas
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    // clear the canvas
+    ctx.clearRect(0, 0, width, height);
+    // restore transforms on canvas
+    ctx.restore();
+    // draw every object
+    elements.forEach(function(element) {
+      var bounds = path.bounds(element);
+      var dx = bounds[1][0] - bounds[0][0];
+      var dy = bounds[1][1] - bounds[0][1];
+      var x = (bounds[0][0] + bounds[1][0]) / 2;
+      var y = (bounds[0][1] + bounds[1][1]) / 2;
+      if ((Math.abs(x-viewport[0]) < (dx+(viewport[1]-viewport[0]))) && (Math.abs(y-viewport[2]) < (dy+(viewport[3]-viewport[2])))) {
+        // console.log(JSON.stringify(bounds))
+        ctx.beginPath();
+        path(element);
+        if (element == selectedElement) {
+          ctx.fillStyle = "red";
+        } else {ctx.fillStyle = "white";}
+        ctx.fill()
+        ctx.stroke();
+        ctx.closePath();
+      }
+    })
    console.timeEnd("drawing");
   }
 

@@ -1,0 +1,44 @@
+Leaflet+GeoJSON
+Leaflet example - http://leafletjs.com/examples/choropleth/
+
+shp - GeoJSON
+countries shapes data - http://www.naturalearthdata.com/downloads/10m-cultural-vectors/
+France contours - https://github.com/gregoiredavid/france-geojson
+
+D3+Leaflet+TopoJSON+Awesomcomplete
+France with 4 layers - https://github.com/sylvaindurand/france-choropleth
+
+D3+Canvas+TopoJSON
+awesome tutorial - http://madewithenvy.com/ecosystem/articles/2015/local-maps-with-canvas-d3/
+draw to canvas - http://bl.ocks.org/mbostock/3783604
+
+Simplification
+merge states - https://gist.github.com/mbostock/5416405
+dynamic on canvas - http://bl.ocks.org/mbostock/6245977
+simplify without intersections - https://www.jasondavies.com/simplify/
+
+Tiles
+hardcoded Albers tiles - http://bl.ocks.org/mbostock/5608230
+automatic projection tiles - https://www.jasondavies.com/maps/tile/
+
+Zoom
+zoom example (svg+canvas) - http://jsfiddle.net/30w8nv4t/7/
+zomm to bounding box (svg) - http://bl.ocks.org/mbostock/9656675
+
+Transitions
+canvas - http://bl.ocks.org/JMStewart/e6efab7dc6ca09702adb
+zoom canvas - http://bl.ocks.org/mbostock/b783fbb2e673561d214e09c7fb5cedee
+
+D3+SVG+TopoJSON
+D3 tutorial - https://bost.ocks.org/mike/map/
+another tutorial - http://vallandingham.me/shapefile_to_geojson.html
+another tutorial - http://chimera.labs.oreilly.com/books/1230000000345/ch12.html
+change topojson (reload) - http://bl.ocks.org/andrew-reid/18c99da4ea475797738b6c7e62fb1639
+
+data.gouv.fr
+maps - https://www.data.gouv.fr/fr/reuses/?tag=carte
+LOL - https://www.data.gouv.fr/fr/reuses/le-rugby-en-france-2011/
+
+Interesting
+force layout map - http://vallandingham.me/racial_divide/#sl
+countries by area - https://www.jasondavies.com/maps/countries-by-area/
