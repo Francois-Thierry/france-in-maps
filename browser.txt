@@ -5,6 +5,12 @@ shp - GeoJSON
 countries shapes data - http://www.naturalearthdata.com/downloads/10m-cultural-vectors/
 France contours - https://github.com/gregoiredavid/france-geojson
 
+France - Topojson
+France population - http://blockbuilder.org/bricedev/97c53d6ed168902239f7
+ile-de-France chloropleth - http://blockbuilder.org/bricedev/8aa78379efd19ca584c9
+France income - http://blockbuilder.org/SilentWay/db72b6ba42620bb1a8c3
+France income by communes - http://bl.ocks.org/Mavromatika/ba377d0f1f8787b5d80b
+
 D3+Leaflet+TopoJSON+Awesomcomplete
 France with 4 layers - https://github.com/sylvaindurand/france-choropleth
 

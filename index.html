@@ -26,319 +26,80 @@
   <div class="header"></div>
   <div class="row">
   	<div class="column-12">
-  		<h1 class="EN">France in maps</h1>
-  		<h1 class="FR">La France en cartes</h1>
+      <h1 class="EN">France in maps</h1>
+      <h1 class="FR">La France en cartes</h1>
   		<p class="EN">
-  			This webpage is a tryout.
-
-  			I use shapefiles from <a href="https://www.data.gouv.fr/fr/datasets/fond-de-carte-des-codes-postaux/" target="_blank">data.gouv.fr</a>. I then convert the shapefiles using ogr2ogr from the <a href="http://www.gdal.org/" target="_blank">Geospatial Data Abstraction Library (GDAL)</a>.
+  			This webpage is an ongoing cartographic test. I want to map open data from data.gouv.fr. Ideally it would reproduce the same type of maps than in the excellent book "Le mystère français" from Hervé Le Bras and Emmanuel Todd and add interactivity by selecting datasets and available periods.  			
   		</p>
   		<p class="FR">
   			Cette page est un test de cartographie des données de l'INSEE. Idéalement elle devrait permettre de produire le même type de carte que celles de l'excellent livre "Le mystère français" de Hervé Le Bras et Emmanuel Todd et ajouter de l'interactivité en choisissant parmi les données et les périodes disponibles.
   		</p>
-  		<p class="FR">
-  			J'utilise des fichiers formes provenant de <a href="https://www.data.gouv.fr/fr/datasets/decoupage-administratif-communal-francais-issu-d-openstreetmap/" target="_blank">data.gouv.fr</a> (version enrichie et simplifiée à 100m). J'ai ensuite convertit le fichier .shp en GeoJSON en utilisant ogr2ogr de la <a href="http://www.gdal.org/" target="_blank">librairie d'abstraction de données géospatiales (GDAL)</a>. 
-  		</p>
-  		<p class="code">
-  			ogr2ogr -f GeoJSON -t_srs crs:84 geo.json communes-20150101-100m.shp</i>
-  		</p>
-  		<p class="FR">
-  			Puis en TopoJSON pour réduire la taille du fichier (-60%!) et ainsi accélérer le chargement.
-  		</p>
-  		<p class="code">
-  			geo2topo -o topo.json -q 1e6 geo.json
-  		</p>
-  		<p class="FR">
-  			J'ai ensuite encore réduit la taille du fichier (-27%) en retirant les attributs dont je n'avais pas besoin. J'ai ainsi retiré les attributs x_chf_lieu, y_chf_lieu, wikipedia, statut, population, lat_centro et lon_centro à l'aide d'un script Python.
-  		</p>
-  		<p class="FR">
-  			Grâce aux attributs (et à TopoJSON) on affiche différents niveaux de résolutions (communes - cantons - départements - régions) avec les mêmes données en fusionnant les géométries qui ont des attributs en commun.
-  		</p>
+  		
   	</div>
     <div class="row plot column-12">
-      <div class="column-12" style="display:inline-flex;" class="selector">
-        <h3 id="code_regn" class="active">Régions (2015)</h2>
-        <h3 id="code_reg">Régions</h2>
-        <h3 id="code_dept">Départements</h2>
-        <h3 id="code_cant">Cantons</h2>
-        <h3 id="code_com">Communes</h2>
+      <div class="column-12" style="display:inline-flex;">
+        <h3 id="regions2015" class="active">Régions (2015)</h3>
+        <h3 id="regions">Régions</h3>
+        <h3 id="departements">Départements</h3>
+        <h3 id="cantons">Cantons</h3>
+        <h3 id="communes">Communes</h3>
       </div>
       <div>
         <canvas id="map"></canvas>
       </div>
     </div>
   </div>
+  <div class="detailsSection column-12">
+    <h3 class="EN">Details</h3>
+    <h3 class="FR">Détails</h3>
+    <div class="details">
+      <div class="line-separator"></div>
+      <div class="column-12">      
+        <p class="EN">
+          I use shape files from <a href="https://www.data.gouv.fr/fr/datasets/decoupage-administratif-communal-francais-issu-d-openstreetmap/" target="_blank">data.gouv.fr</a> (2015 version simplified at 100m). The problem with this file is that it weights 15.5 Mb so it's a long loading and that it isn't directly usable on github. I started by converting the .shp file into GeoJSON format using ogr2ogr from the Geospatial Data Abstraction Library (<a href="http://www.gdal.org/" target="_blank">GDAL</a>).
+        </p>   
+        <p class="FR">
+          J'utilise des fichiers formes provenant de <a href="https://www.data.gouv.fr/fr/datasets/decoupage-administratif-communal-francais-issu-d-openstreetmap/" target="_blank">data.gouv.fr</a> (version 2015 simplifiée à 100m). Le problème de ce fichier est qu'il pèse 15.5 Mb ce qui ralentit le chargement et le fait qu'il ne soit pas utilisable directement sur github. J'ai commencé par convertir le fichier .shp en GeoJSON en utilisant ogr2ogr de la librairie d'abstraction de données géospatiales (<a href="http://www.gdal.org/" target="_blank">GDAL</a>). 
+        </p>
+        <p class="code">
+          ogr2ogr -f GeoJSON -t_srs crs:84 geo.json communes-20150101-100m.shp
+        </p>
+        <p class="EN">
+          The GeoJSON file produced is even bigger (43.5 Mb), I then used <a href="https://github.com/topojson/topojson">TopoJSON</a> to compress it and drastically reduce the file size (11 Mb!!) in order to minimize the loading time.
+        </p>
+        <p class="FR">
+          Le fichier GeoJSON obtenu est plus volumineux (43.5 Mb), j'utilise <a href="https://github.com/topojson/topojson">TopoJSON</a> pour le compresser et ainsi réduire la taille du fichier (11 Mb!!) afin d'accélérer le chargement.
+        </p>
+        <p class="code">
+          geo2topo -o topo.json -q 1e5 geo.json
+        </p>
+        <p class="EN">
+          I then deleted the attributes that I didn't needed (wikipedia, surf_m2 and nom) and I added the geographic codes corresponding to each geometry with a Python script. This increases slightly the size of the file (11.6 Mb), I finally simplified the topology with TopoJSON-simplify to obtain a final size of 9.6Mb.
+        </p>
+        <p class="FR">
+          J'ai ensuite retirer les attributs dont je n'avais pas besoin ("wikipedia", "surf_m2" et "nom") et j'ai rajouté l'appartenance géographique pour chaque commune à l'aide d'un script Python. Cela augmente légérement la taille du fichier (11.6 Mb), j'ai finalement simplifié la topologie avec TopoJSON-simplify pour obtenir un fichier de 9.6Mb.
+        </p>
+        <p class="code">
+          toposimplify -o topo_s.json -p 1e-4 topo.json
+        </p>
+        <p class="EN">
+          Thanks to the geographic codes (and TopoJSON) we display different administrative levels ("communes" - "cantons" - "départements" - "régions") with the same data by merging geometries that have attributes in common.
+        </p>
+        <p class="FR">
+          Grâce aux attributs (et à TopoJSON) on affiche différents niveaux de résolutions (communes - cantons - départements - régions) avec les mêmes données en fusionnant les géométries qui ont des attributs en commun.
+        </p>
+      </div>
+      <div class="line-separator"></div>
+    </div>
+  </div>
+  <div class="footer"></div>
 </div>
-
 <!-- ----------------------------------------------------------------------- -->
 <!--                                                              Javascript -->
 <!-- ----------------------------------------------------------------------- -->
 
 <script src="../assets/main.js"></script>
-
-<script type="text/javascript">
-
-	var width = 860;
-	var height = 640;
-  var viewport = [0, 860, 0, 640];
-
-  var elements = [];
-  var zoomLevel = 0;
-  var selectedElement = null;
-	var selectedCode = "code_regn";
-
-  var regn = {"32":"Hauts-de-France", "44":"Grand-Est", "28":"Normandie", "53":"Bretagne", "52":"Pays de la Loire", "24":"Centre Val de Loire", "11":"Ile-de-France", "27":"Bourgogne Franche-Comté", "75":"Nouvelle Aquitaine", "84":"Auvergne Rhônes-Alpes", "76":"Occitanie", "93":"Provence-Alpes-Côte d'Azur", "94":"Corse"}
-
-  // // Use either Lambert Conformal Conic or Orthographic for Europe
-  // // (http://www.georeference.org/doc/guide_to_selecting_map_projections.htm)
-  // // see also http://kartoweb.itc.nl/geometrics/map%20projections/mappro.html and http://xkcd.com/977/
-  var projection = d3.geoConicConformal()
-    .scale(3600)
-    .center([3.2, 46.4])
-    .translate([width/2, height/2]);
-
-  var canvas = d3.select('#map')
-    .attr('width', width)
-    .attr('height', height)
-    .attr("id", "mapCanvas")
-
-  var ctx = canvas.node().getContext("2d");
-  ctx.lineWidth = "0.5";
-  ctx.fillStyle = "white"
-      
-  var path = d3.geoPath()
-    .projection(projection)
-    .context(ctx)
-
-  // var zoom = d3.behavior.zoom()
-  //   .translate([0, 0])
-  //   .scale(1)
-  //   .scaleExtent([1, 8])
-  //   .on("zoom", zoomed);
-
-  var geographicCodes = ["code_com", "code_cant", "code_dept", "code_reg", "code_regn"];
-
-  d3.json("topo.json", function(error, map) {
-    if (error) throw error;
-
-    // // (ACCESSORY) UPDATE PROPERTIES (SEE BOTTOM)
-    // d3.text("table-appartenance-geo-communes-15.csv", function(data) {
-    //   dataLinks = d3.csvParse(data);
-    //   elements = extractElements(map, selectedCode);
-    //   drawMap(elements);
-    // });
-
-    elements = extractElements(map, selectedCode);
-    drawMap(elements);
-
-    $(".row.plot h3").click(function(){
-      $(".row.plot h3").removeClass("active");
-      $(this).addClass("active");
-      selectedCode = $(this).attr("id");
-      elements = extractElements(map, selectedCode);
-      drawMap(elements)
-    })
-
-    canvas.on("click", clicked);
-    // canvas.on("click", makeDoubleClick(reset, clicked));
-
-    function reset() {
-      console.log("RESET")
-    }
-
-    function clicked() {
-      if (zoomLevel == 0) {      
-        var mousePos = d3.mouse(this);
-        elements.forEach(function(element) {
-          ctx.beginPath();
-          path(element);
-          ctx.closePath();
-          if (ctx.isPointInPath(mousePos[0], mousePos[1]) == true) {
-            var bounds = path.bounds(element);
-            var dx = bounds[1][0] - bounds[0][0];
-            var dy = bounds[1][1] - bounds[0][1];
-            var x = (bounds[0][0] + bounds[1][0]) / 2;
-            var y = (bounds[0][1] + bounds[1][1]) / 2;
-            var scale = Math.max(1, Math.min(8, 0.9 / Math.max(dx / width, dy / height)));
-            var translate = [width / 2 - scale * x, height / 2 - scale * y];
-            ctx.save();
-            ctx.translate(translate[0], translate[1]);
-            ctx.scale(scale, scale);
-            ctx.lineWidth = 0.5*1/scale;
-            selectedElement = element;
-            drawMap(elements);
-            zoomLevel += 1;
-            console.log(regn[element.properties.id]);
-            console.log(JSON.stringify(bounds))
-            viewport = [-translate[0]/scale, width/scale-translate[0]/scale, -translate[1]/scale, height/scale-translate[1]/scale]
-            console.log(viewport)
-          }
-        })
-      } else {
-        ctx.restore();
-        zoomLevel = 0;
-        viewport = [0, 860, 0, 640];
-        drawMap(elements);
-      }
-    }
-    
-    // var zoom = d3.zoom()
-    //   .scaleExtent([2/3, 2])
-    //   .on("zoom", zoomed);
-
-    // canvas.call(zoom);
-
-    // function zoomed() {
-    //   ctx.lineWidth = 1.5 / d3.event.scale;
-    //   ctx.translate(d3.event.transform.x, d3.event.transform.y);
-    //   ctx.scale(d3.event.transform.k, d3.event.transform.k);
-    //   drawMap(elements);
-    // }
-
-  });
-
-  function extractElements(map) {
-    console.time("extracting");
-    // prepare elements
-    var elements = [];
-    // select dataset geometries
-    var dataset = map.objects.geo.geometries;
-    // sort the dataset by the geographic code
-    dataset.sort(function(a, b) {return d3.ascending(a.properties[selectedCode], b.properties[selectedCode])})
-    // initialize a group code
-    var groupCode = ""
-    // for every object in the map
-    for (var i = 0; i < dataset.length; i++) {
-      if (selectedCode == "code_com") {
-        // use every object
-        elements.push(topojson.feature(map, dataset[i]));
-      } else {
-        // get the corresponding geographic code
-        var id = dataset[i].properties[selectedCode];
-        // if it doesn't exist
-        if (id != groupCode) {
-          // if a group already exist
-          if (group != undefined) {
-            // merge the paths
-            mergedPath = topojson.merge(map, group)
-            mergedPath.properties = {"id":groupCode}
-            // use the merged group
-            elements.push(mergedPath)
-          }
-          // update the group code
-          groupCode = id;
-          // if it doesn't exist create it
-          var group = [dataset[i]];
-        } else {
-          // add it to the group if it is the same code as the
-          // previous one
-          group.push(dataset[i])
-        }
-      }   
-    }
-    console.timeEnd("extracting");
-    return elements;
-  }
-
-  function drawMap(elements) {
-    console.time("drawing");
-    // save current context with transform
-    ctx.save();
-    // Use the identity matrix while clearing the canvas
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    // clear the canvas
-    ctx.clearRect(0, 0, width, height);
-    // restore transforms on canvas
-    ctx.restore();
-    // draw every object
-    elements.forEach(function(element) {
-      var bounds = path.bounds(element);
-      var dx = bounds[1][0] - bounds[0][0];
-      var dy = bounds[1][1] - bounds[0][1];
-      var x = (bounds[0][0] + bounds[1][0]) / 2;
-      var y = (bounds[0][1] + bounds[1][1]) / 2;
-      if ((Math.abs(x-viewport[0]) < (dx+(viewport[1]-viewport[0]))) && (Math.abs(y-viewport[2]) < (dy+(viewport[3]-viewport[2])))) {
-        // console.log(JSON.stringify(bounds))
-        ctx.beginPath();
-        path(element);
-        if (element == selectedElement) {
-          ctx.fillStyle = "red";
-        } else {ctx.fillStyle = "white";}
-        ctx.fill()
-        ctx.stroke();
-        ctx.closePath();
-      }
-    })
-   console.timeEnd("drawing");
-  }
-
-// // update the properties - It took more than 1 sec on my computer so I
-// // rewrote it in python and I updated the topojson file prior to use. I
-// // leave it there for information
-
-// // sort the dataset by the geographic code
-// dataset.sort(function(a, b) {return d3.ascending(a.properties.insee, b.properties.insee)})
-// var j = 0;
-// var arrondissements = {}
-// // loop through the geometries
-// for (var i = 0; i < dataset.length; i++) {
-//   // get the INSEE id for this geometry
-//   inseeId = dataset[i].properties.insee;
-//   // if the INSEE id does not correspond to that of the row in the communes csv 
-//   if (inseeId != dataLinks[i+j].insee) {
-//     // if communes csv item is Marseille, Lyon or Paris
-//     if (["Marseille", "Lyon", "Paris"].includes(dataLinks[i+j].nom)) {
-//       // store the informations to use with arrondissements
-//       arrondissements[dataLinks[i+j].nom] = dataLinks[i+j];
-//       // increment counter to skip this csv row
-//       j += 1;
-//     // if the communes csv item is somewhere else process differences
-//     } else {
-//       // annotate in red
-//       ctx.fillStyle = 'red';
-//       // if the geometry is an arrondissement
-//       if ((+inseeId > 13200 && +inseeId < 13217) || // Marseille
-//           (+inseeId > 69380 && +inseeId < 69390) || // Lyon
-//           (+inseeId > 75100 && +inseeId < 75121)) { // Paris
-//         // decrement counter to keep current csv row
-//         j -= 1;
-//         // weird missing decrement after Paris arrondissements
-//         if (+inseeId == 75120) {
-//           j -= 1;
-//         }
-//       // if the geometry is not an arrondissement
-//       } else {
-//         // if the INSEE id is not present in geometries
-//         if ([55138, 71578].includes(+dataLinks[i+j].insee)) {
-//           // increment counter to skip this csv row
-//           j += 1;
-//         // if the INSEE id is not present in communes csv
-//         } else if ([71138, 97501, 97502].includes(+inseeId)) {
-//           // decrement counter to keep current csv row
-//           j -= 1;
-//         } else {
-//           // there is a bug
-//           console.log(i, dataset[i].properties)
-//           console.log(dataLinks[i+j])
-//           break;
-//         }
-//       }
-//     }
-//   // if the INSEE ids corresponds everything is fine
-//   } else {
-//     ctx.fillStyle = 'white';
-//   }
-//   // update the geometry properties with csv data
-//   $.extend(true, dataset[i].properties, dataLinks[i+j])
-//   // draw the current geometry with particular color
-//   ctx.beginPath();
-//   path(topojson.feature(map, dataset[i]));
-//   ctx.fill();
-//   ctx.stroke();
-//   ctx.closePath();
-// }
-
-</script>
+<script src="france-in-maps.js"></script>
 
 </body>
 </html>
