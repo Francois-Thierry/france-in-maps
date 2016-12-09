@@ -112,19 +112,31 @@ d3.json("topo.json", function(error, map) {
 
   resizeCanvas();
 
-  var timer = 0;
   canvas.on("click", function() {
     var mousePos = d3.mouse(this);
-    if(timer == 0) {
-          timer = 1;
-          timer = setTimeout(function(){ timer = 0; }, 600);
-          clicked(mousePos, map);
-        }
-        else {
-          dblclicked(mousePos, map);
-          timer = 0;
-        }
+    clicked(mousePos, map);
   })
+
+  canvas.on("dblclick", function() {
+    var mousePos = d3.mouse(this);
+    dblclicked(mousePos, map);
+  })
+
+  var tapped=false;
+  canvas.on("touchstart",function(e){
+    var mousePos = d3.mouse(this);
+    if(!tapped){ //if tap is not set, set up single tap
+      tapped=setTimeout(function(){
+        tapped=null
+        clicked(mousePos, map);
+      },300);   //wait 300ms then run single click code
+    } else {    //tapped within 300ms of last tap. double tap
+      clearTimeout(tapped); //stop single tap callback
+      tapped=null
+      dblclicked(mousePos, map);
+    }
+    e.preventDefault()
+  });
 
   $(".row.plot h3").click(function(){
     $(".row.plot h3").removeClass("active");
