@@ -112,14 +112,18 @@ d3.json("topo.json", function(error, map) {
 
   resizeCanvas();
 
+  var timer = 0;
   canvas.on("click", function() {
     var mousePos = d3.mouse(this);
-    clicked(mousePos, map);
-  })
-
-  canvas.on("dblclick", function() {
-    var mousePos = d3.mouse(this);
-    dblclicked(mousePos, map);
+    if(timer == 0) {
+          timer = 1;
+          timer = setTimeout(function(){ timer = 0; }, 600);
+          clicked(mousePos, map);
+        }
+        else {
+          dblclicked(mousePos, map);
+          timer = 0;
+        }
   })
 
   $(".row.plot h3").click(function(){
