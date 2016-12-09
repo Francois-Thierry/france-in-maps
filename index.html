@@ -7,6 +7,7 @@
   <title class="FR">La France en cartes</title>
 
   <link rel="stylesheet" href="../assets/main.css">
+  <link rel="stylesheet" href="france-in-maps.css">
 
   <script src="../assets/external/jquery-3.1.0.min.js"></script>
   <script src="../assets/external/xlsx.full.min.js"></script>
@@ -36,16 +37,31 @@
   		</p>
   		
   	</div>
-    <div class="row plot column-12">
-      <div class="column-12" style="display:inline-flex;">
-        <h3 id="regions2015" class="active">Régions (2015)</h3>
-        <h3 id="regions">Régions</h3>
+    <div class="row plot">
+      <div class="row-action column-12">
+        <div class="status"></div>
+        <img src="../assets/img/italic.svg" class="infos-action">
+        <img src="../assets/img/screen-full.svg" class="fullscreen-action">
+      </div>
+      <p class="column-11 caption infos EN">
+        <b>Infos :</b>
+        Map of France (from <a href="https://www.data.gouv.fr/fr/datasets/decoupage-administratif-communal-francais-issu-d-openstreetmap/">data.gouv.fr</a>) at different administrative levels. Geographical data are contained in a single 9Mb TopoJSON file (see details). Click on the map to zoom to a geometry, double-click to zoom-out to the previous zoom level.
+      </p>
+      <p class="column-11 caption infos FR">
+        <b>Infos :</b>
+        Carte de France (source: <a href="https://www.data.gouv.fr/fr/datasets/decoupage-administratif-communal-francais-issu-d-openstreetmap/">data.gouv.fr</a>) à différents niveaux administratifs. Les données géographiques sont contenues dans un fichier TopoJSON unique de 9Mb (voir détails). Cliquez sur la carte pour zoomer sur une géométrie, double-cliquez pour revenir au zoom précédent.
+      </p>
+
+      <div class="column-12 map-element" style="padding-bottom:0.1em;padding-top: 0.1em;">
+        <h3 id="regions2015" class="active">Régions</h3><!--  (2015)</h3> -->
+        <!-- <h3 id="regions">Régions</h3> -->
         <h3 id="departements">Départements</h3>
         <h3 id="cantons">Cantons</h3>
         <h3 id="communes">Communes</h3>
       </div>
-      <div>
-        <canvas id="map"></canvas>
+      <div class="column-12 map-element" style="padding-top:0.1em;">
+        
+        <canvas id="map"  class="map-element" style="width:100%;"></canvas>
       </div>
     </div>
   </div>

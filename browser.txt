@@ -25,11 +25,17 @@ simplify without intersections - https://www.jasondavies.com/simplify/
 
 Tiles
 hardcoded Albers tiles - http://bl.ocks.org/mbostock/5608230
+clipped map tiles - http://blockbuilder.org/mbostock/4150951
+vector tiles - http://bl.ocks.org/mbostock/5593150
 automatic projection tiles - https://www.jasondavies.com/maps/tile/
+
+Quadtree
+quadtree canvas - http://blockbuilder.org/enjalot/534c925aa109f526d37937dcfda58fc4
 
 Zoom
 zoom example (svg+canvas) - http://jsfiddle.net/30w8nv4t/7/
 zomm to bounding box (svg) - http://bl.ocks.org/mbostock/9656675
+zommable chloropleth of colombian cities - http://blockbuilder.org/john-guerra/95074aef40181d2b3b697c5624bec2b8
 
 Transitions
 canvas - http://bl.ocks.org/JMStewart/e6efab7dc6ca09702adb

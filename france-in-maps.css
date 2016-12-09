@@ -1,0 +1,8 @@
+canvas {
+	border: solid 1pt #9E9E9E;
+	/*width:100%;*/
+}
+
+.map-element {
+	display: none;
+}
